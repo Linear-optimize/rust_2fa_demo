@@ -3,19 +3,13 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use crossterm::event::{
-    self, Event, KeyCode, KeyEventKind,
-};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
 use ratatui::{
-    layout::{
-        Alignment, Constraint, Flex, Layout, Margin, Rect,
-    },
+    layout::{Alignment, Constraint, Flex, Layout, Margin, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{
-        Block, BorderType, Clear, Gauge, Padding, Paragraph,
-    },
+    widgets::{Block, BorderType, Clear, Gauge, Padding, Paragraph},
 };
 
 use crate::totp;
@@ -39,22 +33,12 @@ pub fn run(secret: &[u8]) -> io::Result<()> {
                 let area = frame.area();
 
                 // 整个终端的背景
-                frame.render_widget(
-                    Block::new().style(
-                        Style::default().bg(BACKGROUND),
-                    ),
-                    area,
-                );
+                frame.render_widget(Block::new().style(Style::default().bg(BACKGROUND)), area);
 
                 let card_area = centered_area(area);
                 frame.render_widget(Clear, card_area);
 
-                render_card(
-                    frame,
-                    card_area,
-                    code,
-                    remaining,
-                );
+                render_card(frame, card_area, code, remaining);
             })?;
 
             if should_quit()? {
@@ -64,44 +48,25 @@ pub fn run(secret: &[u8]) -> io::Result<()> {
     })
 }
 
-fn render_card(
-    frame: &mut ratatui::Frame,
-    area: Rect,
-    code: u32,
-    remaining: u64,
-) {
+fn render_card(frame: &mut ratatui::Frame, area: Rect, code: u32, remaining: u64) {
     let color = status_color(remaining);
     let status = status_text(remaining);
 
     let card = Block::bordered()
         .border_type(BorderType::Rounded)
-        .border_style(
-            Style::default()
-                .fg(ACCENT)
-                .add_modifier(Modifier::BOLD),
-        )
-        .style(
-            Style::default()
-                .fg(Color::White)
-                .bg(CARD_BACKGROUND),
-        )
+        .border_style(Style::default().fg(ACCENT).add_modifier(Modifier::BOLD))
+        .style(Style::default().fg(Color::White).bg(CARD_BACKGROUND))
         .padding(Padding::horizontal(2))
         .title_top(
             Line::from(vec![
-                Span::styled(
-                    " ◆ ",
-                    Style::default().fg(ACCENT),
-                ),
+                Span::styled(" ◆ ", Style::default().fg(ACCENT)),
                 Span::styled(
                     "RUST TOTP",
                     Style::default()
                         .fg(Color::White)
                         .add_modifier(Modifier::BOLD),
                 ),
-                Span::styled(
-                    " ◆ ",
-                    Style::default().fg(ACCENT),
-                ),
+                Span::styled(" ◆ ", Style::default().fg(ACCENT)),
             ])
             .centered(),
         )
@@ -133,11 +98,7 @@ fn render_card(
 
     let header = Paragraph::new(
         Line::from("Two-Factor Authentication")
-            .style(
-                Style::default()
-                    .fg(MUTED)
-                    .add_modifier(Modifier::ITALIC),
-            ),
+            .style(Style::default().fg(MUTED).add_modifier(Modifier::ITALIC)),
     )
     .alignment(Alignment::Center);
 
@@ -145,14 +106,9 @@ fn render_card(
         Line::from(vec![
             Span::styled(
                 "● ",
-                Style::default()
-                    .fg(color)
-                    .add_modifier(Modifier::BOLD),
+                Style::default().fg(color).add_modifier(Modifier::BOLD),
             ),
-            Span::styled(
-                status,
-                Style::default().fg(color),
-            ),
+            Span::styled(status, Style::default().fg(color)),
         ])
         .centered(),
     );
@@ -168,22 +124,17 @@ fn render_card(
         .block(
             Block::bordered()
                 .border_type(BorderType::Rounded)
-                .border_style(
-                    Style::default().fg(color),
-                )
+                .border_style(Style::default().fg(color))
                 .padding(Padding::vertical(1))
                 .title(
                     Line::from(" CURRENT CODE ")
-                        .style(
-                            Style::default().fg(MUTED),
-                        )
+                        .style(Style::default().fg(MUTED))
                         .centered(),
                 ),
         );
 
     let separator = Paragraph::new(
-        Line::from("·  ·  ·  ·  ·  ·  ·  ·  ·  ·")
-            .style(Style::default().fg(Color::DarkGray)),
+        Line::from("·  ·  ·  ·  ·  ·  ·  ·  ·  ·").style(Style::default().fg(Color::DarkGray)),
     )
     .alignment(Alignment::Center);
 
@@ -191,15 +142,8 @@ fn render_card(
         .block(
             Block::bordered()
                 .border_type(BorderType::Rounded)
-                .border_style(
-                    Style::default().fg(Color::DarkGray),
-                )
-                .title(
-                    Line::from(" VALIDITY ")
-                        .style(
-                            Style::default().fg(MUTED),
-                        ),
-                ),
+                .border_style(Style::default().fg(Color::DarkGray))
+                .title(Line::from(" VALIDITY ").style(Style::default().fg(MUTED))),
         )
         .gauge_style(
             Style::default()
@@ -211,14 +155,12 @@ fn render_card(
         .label(format!("{remaining:02} seconds"));
 
     let footer = Paragraph::new(vec![
-        Line::from("验证码每 30 秒自动刷新")
-            .style(Style::default().fg(MUTED)),
-        Line::from("请勿向任何人泄露你的密钥")
-            .style(
-                Style::default()
-                    .fg(Color::DarkGray)
-                    .add_modifier(Modifier::ITALIC),
-            ),
+        Line::from("验证码每 30 秒自动刷新").style(Style::default().fg(MUTED)),
+        Line::from("请勿向任何人泄露你的密钥").style(
+            Style::default()
+                .fg(Color::DarkGray)
+                .add_modifier(Modifier::ITALIC),
+        ),
     ])
     .alignment(Alignment::Center);
 
@@ -234,17 +176,13 @@ fn centered_area(area: Rect) -> Rect {
     let width = CARD_WIDTH.min(area.width.saturating_sub(2));
     let height = CARD_HEIGHT.min(area.height.saturating_sub(2));
 
-    let [vertical] = Layout::vertical([
-        Constraint::Length(height),
-    ])
-    .flex(Flex::Center)
-    .areas(area);
+    let [vertical] = Layout::vertical([Constraint::Length(height)])
+        .flex(Flex::Center)
+        .areas(area);
 
-    let [centered] = Layout::horizontal([
-        Constraint::Length(width),
-    ])
-    .flex(Flex::Center)
-    .areas(vertical);
+    let [centered] = Layout::horizontal([Constraint::Length(width)])
+        .flex(Flex::Center)
+        .areas(vertical);
 
     centered.inner(Margin {
         horizontal: 0,
@@ -296,8 +234,6 @@ fn should_quit() -> io::Result<bool> {
 
     Ok(matches!(
         key.code,
-        KeyCode::Char('q')
-            | KeyCode::Char('Q')
-            | KeyCode::Esc
+        KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc
     ))
 }
