@@ -6,7 +6,7 @@ use std::{
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
 use ratatui::{
-    layout::{Alignment, Constraint, Flex, Layout, Margin, Rect},
+    layout::{Alignment, Constraint, Flex, Layout,  Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, BorderType, Clear, Gauge, Padding, Paragraph},
@@ -49,6 +49,35 @@ pub fn run(secret: &[u8]) -> io::Result<()> {
 }
 
 fn render_card(frame: &mut ratatui::Frame, area: Rect, code: u32, remaining: u64) {
+      if area.width < 45 || area.height < CARD_HEIGHT {
+        let code_text = if area.width < 10 {
+            format!("{code:06}")
+        } else {
+            format_code(code)
+        };
+
+        let mut lines = vec![Line::from(code_text)];
+        if area.height >= 2 {
+            lines.push(Line::from(format!("剩余 {remaining} 秒")));
+        }
+
+        let mut compact = Paragraph::new(lines)
+            .alignment(Alignment::Center)
+            .style(Style::default().fg(status_color(remaining)));
+
+        // 有足够空间才画边框，避免边框挤掉验证码。
+        if area.width >= 10 && area.height >= 5 {
+            compact = compact.block(
+                Block::bordered()
+                    .border_type(BorderType::Rounded)
+                    .title(" TOTP "),
+            );
+        }
+
+        frame.render_widget(compact, area);
+        return;
+    }
+    
     let color = status_color(remaining);
     let status = status_text(remaining);
 
@@ -173,8 +202,8 @@ fn render_card(frame: &mut ratatui::Frame, area: Rect, code: u32, remaining: u64
 }
 
 fn centered_area(area: Rect) -> Rect {
-    let width = CARD_WIDTH.min(area.width.saturating_sub(2));
-    let height = CARD_HEIGHT.min(area.height.saturating_sub(2));
+      let width = CARD_WIDTH.min(area.width);
+    let height = CARD_HEIGHT.min(area.height);
 
     let [vertical] = Layout::vertical([Constraint::Length(height)])
         .flex(Flex::Center)
@@ -184,11 +213,9 @@ fn centered_area(area: Rect) -> Rect {
         .flex(Flex::Center)
         .areas(vertical);
 
-    centered.inner(Margin {
-        horizontal: 0,
-        vertical: 0,
-    })
+    centered
 }
+
 
 fn format_code(code: u32) -> String {
     let code = format!("{code:06}");

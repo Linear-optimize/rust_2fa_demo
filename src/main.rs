@@ -8,7 +8,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let secret_bytes =
         totp::decode_secret(&secret).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
+    
     ui::run(&secret_bytes)?;
 
     Ok(())
