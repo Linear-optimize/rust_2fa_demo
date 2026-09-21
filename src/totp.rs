@@ -15,17 +15,17 @@ pub fn decode_secret(secret: &str) -> Result<Vec<u8>, String> {
         .collect();
 
     if normalized.is_empty() {
-        return Err("Base32 密钥不能为空".to_string());
+        return Err("Base32 password is not null".to_string());
     }
 
     base32::decode(Alphabet::Rfc4648 { padding: false }, &normalized)
-        .ok_or_else(|| "无效的 Base32 密钥".to_string())
+        .ok_or_else(|| " Base32 password is ilvailed".to_string())
 }
 
 pub fn generate(secret: &[u8], timestamp: u64) -> u32 {
     let counter = timestamp / TIME_STEP;
 
-    let mut mac = HmacSha1::new_from_slice(secret).expect("HMAC-SHA1 支持任意长度的密钥");
+    let mut mac = HmacSha1::new_from_slice(secret).expect("HMAC-SHA1 not support this password");
 
     mac.update(&counter.to_be_bytes());
 
